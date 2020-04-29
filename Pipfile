@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+yapf = "*"
+pipenv-setup = "*"
+toriicli = {editable = true,path = "."}
+
+[packages]
+pyyaml = "*"
+marshmallow = "*"
+click = "*"
+jinja2 = "*"
+appdirs = "*"
+
+[requires]
+python_version = "3.7"
