@@ -30,6 +30,7 @@ SUBCOMMANDS_DONT_LOAD_CONFIG = ["new"]
               help="The project directory. Defaults to CWD if not given.")
 @click.pass_context
 def toriicli(ctx, project_path):
+    """CLI utility for the Unity Torii framework."""
     if ctx.invoked_subcommand not in SUBCOMMANDS_DONT_LOAD_CONFIG:
         cfg = config.from_yaml(config.CONFIG_NAME)
         if cfg is None:
@@ -56,11 +57,3 @@ def new(project_path):
     the current working directory as the project path."""
     out_file_path = config.create_config(project_path)
     print(f"Created new Torii project: {out_file_path}")
-
-
-def main():
-    toriicli()
-
-
-if __name__ == "__main__":
-    main()

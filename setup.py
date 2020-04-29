@@ -23,7 +23,7 @@ setup(
     packages=find_packages("."),
     entry_points="""
         [console_scripts]
-        toriicli=toriicli.__main__:main
+        toriicli=toriicli.__main__:toriicli
     """,
     python_requires=">=3.7",
     include_package_data=True,
