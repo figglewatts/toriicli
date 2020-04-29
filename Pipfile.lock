@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "083b18d947d7de2af6c28ce30a2d4f80d65db60dba509158847467c60567211c"
+            "sha256": "df8489fd00ead79da4baad213b0c199a8a8a0f5f5d05b7b86d1effce22fa1cc9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -86,6 +86,13 @@
             "index": "pypi",
             "version": "==3.5.1"
         },
+        "plumbum": {
+            "hashes": [
+                "sha256:16b9e19d96c80f2e9d051ef5f04927b834a6ac0ce5d2768eb8662b5cd53e43df",
+                "sha256:91418dcc66b58ab9d2e3b04b3d1e0d787dc45923154fb8b4a826bd9316dba0d6"
+            ],
+            "version": "==1.6.9"
+        },
         "pyyaml": {
             "hashes": [
                 "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97",
@@ -102,6 +109,14 @@
             ],
             "index": "pypi",
             "version": "==5.3.1"
+        },
+        "winapps": {
+            "hashes": [
+                "sha256:702cdb20edbdb003e54e2c87af63c3cc144375815005564d3525afbb62d3a3d5",
+                "sha256:f7fe1d123ccfd3f4994d8c72014cdae3471f9765e9443562618db556bad06adf"
+            ],
+            "index": "pypi",
+            "version": "==0.1.6"
         }
     },
     "develop": {

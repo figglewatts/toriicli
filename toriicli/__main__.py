@@ -2,6 +2,8 @@ import click
 
 VERSION = "#{TAG_NAME}#"
 
+from .build import detect_unity
+
 
 @click.group()
 @click.version_option(version=VERSION)
@@ -11,7 +13,7 @@ def toriicli():
 
 @toriicli.command()
 def hello():
-    print("Hello")
+    print(detect_unity.find_unity_executable("2017.4.30f1"))
 
 
 def main():

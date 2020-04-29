@@ -15,6 +15,7 @@ marshmallow = "*"
 click = "*"
 jinja2 = "*"
 appdirs = "*"
+winapps = "*"
 
 [requires]
 python_version = "3.7"

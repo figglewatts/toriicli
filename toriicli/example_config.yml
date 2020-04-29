@@ -1,0 +1,11 @@
+# unity_executable_path (str, optional): the path to the Unity executable to use
+# to build the project. If not given, an attempt will be made to auto detect
+# the Unity installation.
+#
+# unity_executable_path: "C:/Unity/Editor/Unity.exe"
+
+# unity_preferred_version (str, optional): the preferred version of Unity to get
+# when using Unity installation auto detection. If not given, it will use the
+# first one it finds.
+#
+# unity_preferred_version: 2017.4.30f1"
