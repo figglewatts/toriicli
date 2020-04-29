@@ -1,4 +1,6 @@
 import click
+from dataclasses import dataclass
+import os
 
 VERSION = "#{TAG_NAME}#"
 
@@ -6,10 +8,33 @@ from .build import detect_unity
 from . import config
 
 
+@dataclass
+class ToriiCliContext:
+    cfg: config.ToriiCliConfig
+    project_path: str
+
+
+pass_ctx = click.make_pass_decorator(ToriiCliContext)
+
+SUBCOMMANDS_DONT_LOAD_CONFIG = ["new"]
+"""These subcommands shouldn't load config -- it may not exist beforehand."""
+
+
 @click.group()
 @click.version_option(version=VERSION)
-def toriicli():
-    pass
+@click.option("--project-path",
+              "-p",
+              required=False,
+              type=str,
+              default=os.getcwd(),
+              help="The project directory. Defaults to CWD if not given.")
+@click.pass_context
+def toriicli(ctx, project_path):
+    if ctx.invoked_subcommand not in SUBCOMMANDS_DONT_LOAD_CONFIG:
+        cfg = config.from_yaml(config.CONFIG_NAME)
+        if cfg is None:
+            raise SystemExit(1)
+        ctx.obj = ToriiCliContext(cfg, project_path)
 
 
 @toriicli.command()

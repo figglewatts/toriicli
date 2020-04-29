@@ -59,6 +59,11 @@ def from_yaml(config_path: str) -> Optional[ToriiCliConfig]:
     try:
         with open(config_path, 'r') as config_file:
             raw_config = yaml.safe_load(config_file)
+
+            # handle the case of an empty config file
+            if raw_config is None:
+                raw_config = {}
+
             loaded_config = CONFIG_SCHEMA.load(raw_config)
             return loaded_config
     except OSError as err:
