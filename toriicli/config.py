@@ -4,19 +4,28 @@ import logging.config
 import os
 from os import path
 import pkg_resources
-from typing import Optional
+from typing import Optional, List
 
-from marshmallow import Schema, fields, post_load, ValidationError
+from marshmallow import Schema, fields, post_load, ValidationError, validate
 import yaml
 
+from .build import build_def
+
 EXAMPLE_CONFIG_FILE = "example_config.yml"
+"""The name of the example config file (used to generate new project)."""
+
 CONFIG_NAME = "toriiproject.yml"
+"""The name of the project config file to look for."""
 
 
 class ToriiCliConfigSchema(Schema):
     """Marshmallow schema for app config."""
     unity_executable_path = fields.Str(required=False, missing=None)
     unity_preferred_version = fields.Str(required=False, missing=None)
+    build_defs = fields.List(fields.Nested(build_def.BuildDefSchema(titlecase_field_names=False)),
+                             required=True,
+                             allow_none=False,
+                             validate=validate.Length(min=1))
 
     @post_load
     def make_torii_cli_config(self, data, **kwargs):
@@ -32,6 +41,7 @@ class ToriiCliConfig:
     example_config.yml in the package."""
     unity_executable_path: str
     unity_preferred_version: str
+    build_defs: List[build_def.BuildDef]
 
 
 def create_config(config_path: Optional[str]) -> str:

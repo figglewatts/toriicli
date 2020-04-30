@@ -8,4 +8,12 @@
 # when using Unity installation auto detection. If not given, it will use the
 # first one it finds.
 #
-# unity_preferred_version: 2017.4.30f1"
+# unity_preferred_version: "2017.4.30f1"
+
+# build_defs (array): the list of builds we should be making. Cannot be empty.
+# Each build should have 'target (str)', which is one of https://docs.unity3d.com/ScriptReference/BuildTarget.html
+# As well as 'executable_name (str)', which is the name of the executable to build.
+#
+build_defs:
+  - target: StandaloneWindows
+    executable_name: LSDR.exe

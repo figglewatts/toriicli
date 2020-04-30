@@ -32,7 +32,8 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
               required=False,
               type=str,
               default=os.getcwd(),
-              help="The project directory. Defaults to CWD if not given.")
+              show_default=True,
+              help="The project directory.")
 @click.pass_context
 def toriicli(ctx, project_path):
     """CLI utility for the Unity Torii framework."""
@@ -50,7 +51,8 @@ def toriicli(ctx, project_path):
 def unity(ctx: ToriiCliContext, version):
     """Print the path to the Unity executable. You can optionally specify a
     specific Unity VERSION to attempt to find."""
-    exe_path = detect_unity.find_unity_executable(version)
+    exe_path = detect_unity.find_unity_executable(
+        version or ctx.cfg.unity_preferred_version)
     if exe_path is not None:
         logging.info(exe_path)
     else:

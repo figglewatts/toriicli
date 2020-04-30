@@ -8,4 +8,8 @@
 # when using Unity installation auto detection. If not given, it will use the
 # first one it finds.
 #
-# unity_preferred_version: 2017.4.30f1"
+unity_preferred_version: "2017.4.30f1"
+
+build_defs:
+  - target: StandaloneWindows
+    executable_name: LSDR.exe
