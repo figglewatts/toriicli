@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import logging
+import logging.config
 import os
 from os import path
 import pkg_resources
@@ -51,6 +53,52 @@ def create_config(config_path: Optional[str]) -> str:
     return out_file_path
 
 
+class ErrorFilter:
+    """Filter error logs out of log statements."""
+    def filter(self, record):
+        return record.levelno < logging.ERROR
+
+
+def setup_logging() -> logging.Logger:
+    logger = logging.getLogger("toriicli")
+    logging.config.dictConfig({
+        "version": 1,
+        "formatters": {
+            "standard": {
+                "format": "%(message)s"
+            },
+            "error": {
+                "format": "ERROR: %(message)s"
+            }
+        },
+        "handlers": {
+            "standard": {
+                "class": "logging.StreamHandler",
+                "formatter": "standard",
+                "level": "INFO",
+                "stream": "ext://sys.stdout",
+                "filters": ["no_errors"]
+            },
+            "error": {
+                "class": "logging.StreamHandler",
+                "formatter": "error",
+                "level": "ERROR",
+                "stream": "ext://sys.stderr"
+            }
+        },
+        "filters": {
+            "no_errors": {
+                "()": ErrorFilter
+            }
+        },
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["standard", "error"]
+        }
+    })
+    return logger
+
+
 def from_yaml(config_path: str) -> Optional[ToriiCliConfig]:
     """Load config file from given path.
 
@@ -68,11 +116,11 @@ def from_yaml(config_path: str) -> Optional[ToriiCliConfig]:
             return loaded_config
     except OSError as err:
         # if there was an error opening the file
-        print("Error opening config file: " + str(err))
+        logging.critical("Error opening config file: " + str(err))
         return None
     except yaml.YAMLError as err:
         # if the YAML was invalid
-        print("Error in config file: " + str(err))
+        logging.critical("Error in config file: " + str(err))
         return None
     except ValidationError as err:
         # if the schema says it's invalid
@@ -95,4 +143,4 @@ def _print_validation_err(err: ValidationError, name: str) -> None:
         log_str.append(f"{field_name}: {err_msgs}")
 
     # print the joined up string
-    print(" ".join(log_str))
+    logging.critical(" ".join(log_str))
