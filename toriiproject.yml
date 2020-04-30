@@ -8,8 +8,33 @@
 # when using Unity installation auto detection. If not given, it will use the
 # first one it finds.
 #
-unity_preferred_version: "2017.4.30f1"
+# unity_preferred_version: "2017.4.30f1"
 
+# actual_project_dir (str, optional): the actual project directory (where the
+# Unity project is) - by default toriicli will use the directory that this
+# config file is in as the Unity project folder but use this if you want to
+# override it
+#
+# actual_project_dir: unityproj
+
+# build_defs (array): the list of builds we should be making. Cannot be empty.
+# Each build should have 'target (str)', which is one of https://docs.unity3d.com/ScriptReference/BuildTarget.html
+# As well as 'executable_name (str)', which is the name of the executable to build.
+#
 build_defs:
   - target: StandaloneWindows
     executable_name: LSDR.exe
+
+build_post_steps:
+  - step: compress
+    using:
+      method: zip # shutil.make_archive(...)
+  - step: upload
+    filter:
+      targets: [StandaloneWindows]
+    using:
+      backend: s3
+      region_name: fra1
+      endpoint_url: https://fra1.digitaloceanspaces.com/
+      bucket_name: $BUCKET_NAME
+      # creds: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY

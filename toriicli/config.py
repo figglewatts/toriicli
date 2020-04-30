@@ -9,7 +9,7 @@ from typing import Optional, List
 from marshmallow import Schema, fields, post_load, ValidationError, validate
 import yaml
 
-from .build import build_def
+from .build import build_def, steps
 
 EXAMPLE_CONFIG_FILE = "example_config.yml"
 """The name of the example config file (used to generate new project)."""
@@ -20,12 +20,30 @@ CONFIG_NAME = "toriiproject.yml"
 
 class ToriiCliConfigSchema(Schema):
     """Marshmallow schema for app config."""
-    unity_executable_path = fields.Str(required=False, missing=None)
-    unity_preferred_version = fields.Str(required=False, missing=None)
-    build_defs = fields.List(fields.Nested(build_def.BuildDefSchema(titlecase_field_names=False)),
+    unity_executable_path = fields.Str(required=False,
+                                       missing=None,
+                                       allow_none=False)
+    unity_preferred_version = fields.Str(required=False,
+                                         missing=None,
+                                         allow_none=False)
+    unity_build_execute_method = fields.Str(
+        required=False,
+        missing="Torii.Build.BuildScript.Build",
+        allow_none=False)
+    actual_project_dir = fields.Str(required=False,
+                                    missing=None,
+                                    allow_none=False)
+    build_defs = fields.List(fields.Nested(
+        build_def.BuildDefSchema(titlecase_field_names=False)),
                              required=True,
                              allow_none=False,
                              validate=validate.Length(min=1))
+    build_output_folder = fields.Str(required=False,
+                                     missing="builds",
+                                     allow_none=False)
+    build_post_steps = fields.List(fields.Nested(steps.StepSchema),
+                                   required=True,
+                                   allow_none=False)
 
     @post_load
     def make_torii_cli_config(self, data, **kwargs):
@@ -38,22 +56,28 @@ CONFIG_SCHEMA = ToriiCliConfigSchema()
 @dataclass
 class ToriiCliConfig:
     """The config of the app. For details on each field, please see
-    example_config.yml in the package."""
+    example_config.yml in the package. These field names must match
+    the schema fields exactly."""
     unity_executable_path: str
     unity_preferred_version: str
+    unity_build_execute_method: str
+    actual_project_dir: str
     build_defs: List[build_def.BuildDef]
+    build_output_folder: str
+    build_post_steps: List[steps.Step]
 
 
-def create_config(config_path: Optional[str]) -> str:
-    """Create a config in a given path, or the CWD if none is given.
-    Returns the path to the created config."""
-    if config_path is None:
-        config_path = os.getcwd()
-
+def create_config(config_path: str, exist_ok: bool = False) -> str:
+    """Create a config in a given path. Returns None if the file already
+    existed and exist_ok was set to False."""
     os.makedirs(config_path, exist_ok=True)
 
-    # write the example config file to the config location
     out_file_path = path.join(config_path, CONFIG_NAME)
+    if not exist_ok and path.exists(out_file_path):
+        # if it already existed and we're not okay with that then exit early
+        return None
+
+    # write the example config file to the config location
     with open(out_file_path, 'w') as config_file:
         # replace any funky windows line endings that might be in there
         example_cfg = pkg_resources.resource_string(

@@ -12,7 +12,13 @@ def repo_file_as_string(file_path: str) -> str:
 
 setup(
     dependency_links=[],
-    install_requires=["click==7.1.2", "marshmallow==3.5.1", "pyyaml==5.3.1"],
+    install_requires=[
+        "appdirs==1.4.3",
+        "click==7.1.2",
+        "marshmallow==3.5.2",
+        "python-dotenv==0.13.0",
+        "pyyaml==5.3.1",
+    ],
     name="toriicli",
     version="#{TAG_NAME}#",
     description="CLI utility for Torii",

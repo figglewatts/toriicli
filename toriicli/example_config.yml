@@ -10,6 +10,29 @@
 #
 # unity_preferred_version: "2017.4.30f1"
 
+# unity_build_execute_method (str, optional): the method to execute when running
+# Unity for a build. Of format 'NamespaceName.ClassName.MethodName'. As in
+# the docs https://docs.unity3d.com/Manual/CommandLineArguments.html, the
+# method should be in an 'Editor' folder and should be static.
+# Defaults to "Torii.Build.BuildScript.Build"
+#
+# unity_build_execute_method: "Torii.Build.BuildScript.Build"
+
+# actual_project_dir (str, optional): the actual project directory (where the
+# Unity project is) - by default toriicli will use the directory that this
+# config file is in as the Unity project folder but use this if you want to
+# override it
+#
+# actual_project_dir: unityproj
+
+# build_output_folder (str, optional): the folder to put builds in. Builds will
+# be in this folder in subdirectories based on their 'target' value, for
+# example, with 'build_output_folder: builds' and 'target: StandaloneWindows',
+# the build would be in './builds/StandaloneWindows/executable.exe'.
+# this will default to 'builds' if not specified.
+#
+# build_output_folder: builds
+
 # build_defs (array): the list of builds we should be making. Cannot be empty.
 # Each build should have 'target (str)', which is one of https://docs.unity3d.com/ScriptReference/BuildTarget.html
 # As well as 'executable_name (str)', which is the name of the executable to build.
@@ -17,3 +40,17 @@
 build_defs:
   - target: StandaloneWindows
     executable_name: LSDR.exe
+
+build_post_steps:
+  - step: compress
+    using:
+      method: zip # shutil.make_archive(...)
+  - step: upload
+    filter:
+      targets: [StandaloneWindows]
+    using:
+      backend: s3
+      region_name: fra1
+      endpoint_url: https://fra1.digitaloceanspaces.com/
+      bucket_name: $BUCKET_NAME
+      # creds: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
