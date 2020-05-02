@@ -38,7 +38,9 @@ class UnityBuilder:
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         for line in iter(proc.stdout.readline, b""):
-            logging.info(f"--> {line}")
+            logging.info(f"--> {line.decode('utf-8').rstrip()}")
+
+        proc.wait()
 
         return proc.returncode == 0, proc.returncode
 

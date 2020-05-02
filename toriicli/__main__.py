@@ -9,7 +9,7 @@ import click
 import dotenv
 
 from .build import detect_unity, build_def, unity, build_data
-from . import config
+from . import steps, config
 
 VERSION = "#{TAG_NAME}#"
 
@@ -87,8 +87,12 @@ def new(project_path, force):
 
 
 @toriicli.command()
+@click.option("--option",
+              "-o",
+              help="Will run post-steps with this option in the filter",
+              multiple=True)
 @pass_ctx
-def build(ctx: ToriiCliContext):
+def build(ctx: ToriiCliContext, option):
     """Build a Torii project."""
     # first, make sure we can find the Unity executable
     logging.info("Finding Unity executable...")
@@ -118,25 +122,56 @@ def build(ctx: ToriiCliContext):
         logging.critical(f"Unity failed with exit code: {exit_code}")
         raise SystemExit(1)
 
+    logging.info("Build success")
+    logging.info("Collecting completed builds...")
+
     # now, collect info on the completed builds (build number etc.), and
     # run post-steps
     for bd in ctx.cfg.build_defs:
-        build_info = build_data.collect_finished_build(
-            ctx.cfg.build_output_folder, bd)
+        output_folder = path.join(ctx.project_path,
+                                  ctx.cfg.build_output_folder)
+        build_info = build_data.collect_finished_build(output_folder, bd)
 
-        # running post steps:
-        # iterate through and get list of all post steps for which this
-        #   build def will pass the filter
-        # create a temporary dir for each step with
-        # step has:
-        #   - read dir: where it operates on
-        #   - optional temporary write dir: where it writes to
-        #       https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory
+        logging.info(f"Found version {build_info.build_number} for target "
+                     f"{build_info.build_def.target} at {build_info.path}")
+
+        # build steps implicitly have an import step as the first step, to
+        # import the files from the build directory into the workspace
+        steps_to_run = [
+            steps.import_step.ImportStep("**",
+                                         vars(build_info),
+                                         None,
+                                         backend="local",
+                                         container=build_info.path)
+        ]
+
+        # get the steps we're running for this build def, based on the filters
+        try:
+            logging.info("Collecting post-steps...")
+            for step in ctx.cfg.build_post_steps:
+                if step.filter.match(bd, option):
+                    steps_to_run.append(
+                        step.get_implementation(vars(build_info)))
+
+            logging.info("Running post-steps for build...")
+            # now run each of the steps
+            for i, step in enumerate(steps_to_run):
+                # make sure we import the workspace of the step before this
+                if i != 0:
+                    step.use_workspace(steps_to_run[i - 1])
+
+                step.perform()
+        finally:
+            # now clean up all the steps we ran
+            [step.cleanup() for step in steps_to_run]
+
+    logging.info("Finished running post steps! Build complete")
 
     # clean up after the build, remove build defs and build output folder
     try:
         build_def.remove_generated_build_defs(ctx.project_path)
-        shutil.rmtree(ctx.cfg.build_output_folder)
+        shutil.rmtree(path.join(ctx.project_path, ctx.cfg.build_output_folder),
+                      ignore_errors=True)
     except OSError:
         logging.exception("Unable to clean up after build")
         raise SystemExit(1)

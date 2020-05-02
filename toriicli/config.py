@@ -9,7 +9,8 @@ from typing import Optional, List
 from marshmallow import Schema, fields, post_load, ValidationError, validate
 import yaml
 
-from .build import build_def, steps
+from .build import build_def
+from .steps import schemas
 
 EXAMPLE_CONFIG_FILE = "example_config.yml"
 """The name of the example config file (used to generate new project)."""
@@ -41,7 +42,7 @@ class ToriiCliConfigSchema(Schema):
     build_output_folder = fields.Str(required=False,
                                      missing="builds",
                                      allow_none=False)
-    build_post_steps = fields.List(fields.Nested(steps.StepSchema),
+    build_post_steps = fields.List(fields.Nested(schemas.StepSchema),
                                    required=True,
                                    allow_none=False)
 
@@ -64,7 +65,7 @@ class ToriiCliConfig:
     actual_project_dir: str
     build_defs: List[build_def.BuildDef]
     build_output_folder: str
-    build_post_steps: List[steps.Step]
+    build_post_steps: List[schemas.Step]
 
 
 def create_config(config_path: str, exist_ok: bool = False) -> str:

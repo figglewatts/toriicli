@@ -45,7 +45,7 @@ build_post_steps:
   - step: compress
     using:
       method: zip # shutil.make_archive(...)
-  - step: upload
+  - step: export
     filter:
       targets: [StandaloneWindows]
     using:
