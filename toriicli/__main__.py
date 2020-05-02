@@ -43,7 +43,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 def toriicli(ctx, project_path):
     """CLI utility for the Unity Torii framework."""
     config.setup_logging()
-    dotenv.load_dotenv()  # for loading credentials
     if ctx.invoked_subcommand not in SUBCOMMANDS_DONT_LOAD_CONFIG:
         cfg = config.from_yaml(config.CONFIG_NAME)
         if cfg is None:
@@ -88,16 +87,19 @@ def new(project_path, force):
 
 
 @toriicli.command()
-@click.option("--option",
-              "-o",
-              help="Will run post-steps with this option in the filter",
-              multiple=True)
+@click.option(
+    "--option",
+    "-o",
+    help="Will run post-steps with this option in the filter. Allows multiple.",
+    multiple=True)
 @click.option("--no-unity", is_flag=True, help="Don't run the Unity build.")
 @click.option("--no-clean", is_flag=True, help="Don't clean up afterwards.")
 @pass_ctx
 def build(ctx: ToriiCliContext, option: List[str], no_unity: bool,
           no_clean: bool):
     """Build a Torii project."""
+    dotenv.load_dotenv()  # for loading credentials
+
     # first, make sure we can find the Unity executable
     logging.info("Finding Unity executable...")
     exe_path = ctx.cfg.unity_executable_path or detect_unity.find_unity_executable(
@@ -158,9 +160,7 @@ def build(ctx: ToriiCliContext, option: List[str], no_unity: bool,
         try:
             logging.info("Collecting post-steps...")
             for step in ctx.cfg.build_post_steps:
-                print(step)
                 if step.filter is None or step.filter.match(bd, option):
-                    print("SELECTED", step.step)
                     steps_to_run.append(
                         step.get_implementation(vars(build_info)))
 
@@ -187,3 +187,53 @@ def build(ctx: ToriiCliContext, option: List[str], no_unity: bool,
         except OSError:
             logging.exception("Unable to clean up after build")
             raise SystemExit(1)
+
+
+@toriicli.command()
+@click.argument("version", nargs=1, type=str)
+@click.option("--target",
+              "-t",
+              help="Only release specific targets. Allows multiple.",
+              multiple=True)
+@click.option(
+    "--option",
+    "-o",
+    help="Will run steps with this option in the filter. Allows multiple.",
+    multiple=True)
+@pass_ctx
+def release(ctx: ToriiCliContext, version: str, target: List[str],
+            option: List[str]):
+    """Release VERSION of Torii project."""
+    dotenv.load_dotenv()  # for loading credentials
+
+    logging.info(f"Releasing version {version}")
+
+    # we want to release each build definition defined
+    for bd in ctx.cfg.build_defs:
+        # skip this build def if it's not defined in the option
+        if len(target) > 0 and bd.target not in target:
+            continue
+
+        logging.info(f"Running release for target {bd.target}")
+
+        step_context = {"build_number": version, "build_def": bd}
+        steps_to_run = []
+        try:
+            logging.info("Collecting steps...")
+
+            for step in ctx.cfg.release_steps:
+                if step.filter is None or step.filter.match(bd, option):
+                    steps_to_run.append(step.get_implementation(step_context))
+
+            logging.info("Running steps for release...")
+            # now run each of the steps
+            for i, step in enumerate(steps_to_run):
+                # make sure we import the workspace of the step before this
+                if i != 0:
+                    step.use_workspace(steps_to_run[i - 1])
+
+                step.perform()
+        finally:
+            # now clean up all the steps we ran
+            [step.cleanup() for step in steps_to_run]
+            logging.info("Finished running steps! Release complete")

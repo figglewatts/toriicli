@@ -45,6 +45,9 @@ class ToriiCliConfigSchema(Schema):
     build_post_steps = fields.List(fields.Nested(schemas.StepSchema),
                                    required=True,
                                    allow_none=False)
+    release_steps = fields.List(fields.Nested(schemas.StepSchema),
+                                    required=True,
+                                    allow_none=False)
 
     @post_load
     def make_torii_cli_config(self, data, **kwargs):
@@ -66,6 +69,7 @@ class ToriiCliConfig:
     build_defs: List[build_def.BuildDef]
     build_output_folder: str
     build_post_steps: List[schemas.Step]
+    release_steps: List[schemas.Step]
 
 
 def create_config(config_path: str, exist_ok: bool = False) -> str:

@@ -40,6 +40,10 @@ actual_project_dir: D:/Documents/git-repos/LSDRevamped/LSDR
 build_defs:
   - target: StandaloneWindows
     executable_name: LSDR.exe
+  # - target: StandaloneOSXUniversal
+  #   executable_name: LSDR.app
+  # - target: StandaloneLinuxUniversal
+  #   executable_name: LSDR
 
 build_post_steps:
   - step: compress
@@ -62,3 +66,12 @@ build_post_steps:
       endpoint: https://fra1.digitaloceanspaces.com/
       container: $BUCKET_NAME
       path_prefix: "{{ build_def.target }}"
+
+release_steps:
+  - step: import
+    using:
+      backend: s3
+      region: fra1
+      endpoint: https://fra1.digitaloceanspaces.com/
+      container: $BUCKET_NAME
+      key: "{{ build_def.target }}/lsdr-{{ build_number }}.zip"
