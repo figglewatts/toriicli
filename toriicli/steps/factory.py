@@ -1,13 +1,14 @@
 from __future__ import annotations
 from typing import Mapping, Any
 
-from . import schemas, import_step, export_step, compress_step, base_step, chmod_step
+from . import schemas, import_step, export_step, compress_step, base_step, chmod_step, butler_step
 
 STEPS_IMPL = {
     "import": import_step.ImportStep,
     "export": export_step.ExportStep,
     "compress": compress_step.CompressStep,
-    "chmod": chmod_step.ChmodStep
+    "chmod": chmod_step.ChmodStep,
+    "butler": butler_step.ButlerStep
 }
 
 

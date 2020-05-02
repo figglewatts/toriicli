@@ -75,3 +75,12 @@ release_steps:
       endpoint: https://fra1.digitaloceanspaces.com/
       container: $BUCKET_NAME
       key: "{{ build_def.target }}/lsdr-{{ build_number }}.zip"
+  - step: butler
+    filter:
+      targets: [StandaloneWindows]
+    using:
+      directory: "lsdr-{{ build_number }}.zip"
+      user: figglewatts
+      game: lsd-revamped
+      channel: windows
+      user_version: "{{ build_number }}"

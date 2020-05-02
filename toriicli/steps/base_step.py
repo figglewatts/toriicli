@@ -40,6 +40,8 @@ class BaseStep(ABC):
 
     def template(self, string: str) -> str:
         """Template a string using this step's context."""
+        if string is None:
+            return None
         expanded_vars = path.expandvars(string)
         return Template(expanded_vars).render(**self.context)
 
