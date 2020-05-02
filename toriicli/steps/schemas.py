@@ -14,8 +14,8 @@ class StepFilter:
     options: List[str]
 
     def match(self, bd: build_def.BuildDef, options: List[str]) -> bool:
-        return bd.target in self.targets \
-            and set(self.options) <= set(options)
+        return (True if self.targets is None else bd.target in self.targets) \
+            and (True if self.options is None else set(self.options) <= set(options))
 
 
 class StepFilterSchema(Schema):

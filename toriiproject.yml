@@ -42,10 +42,23 @@ build_defs:
     executable_name: LSDR.exe
 
 build_post_steps:
+  - step: compress
+    using:
+      format: zip
+      archive_name: "lsdr-{{ build_number }}"
   - step: export
-    filter:
-      targets: [StandaloneWindows]
-      options: [local]
+    keep: "lsdr-{{ build_number }}.zip"
     using:
       backend: local
-      container: D:/test
+      container: D:/lsdr_builds
+      path_prefix: "{{ build_def.target }}"
+  - step: export
+    keep: "lsdr-{{ build_number }}.zip"
+    filter:
+      options: [upload]
+    using:
+      backend: s3
+      region: fra1
+      endpoint: https://fra1.digitaloceanspaces.com/
+      container: $BUCKET_NAME
+      path_prefix: "{{ build_def.target }}"

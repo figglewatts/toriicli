@@ -4,6 +4,7 @@ import logging.config
 import os
 from os import path
 import shutil
+from typing import List
 
 import click
 import dotenv
@@ -91,8 +92,11 @@ def new(project_path, force):
               "-o",
               help="Will run post-steps with this option in the filter",
               multiple=True)
+@click.option("--no-unity", is_flag=True, help="Don't run the Unity build.")
+@click.option("--no-clean", is_flag=True, help="Don't clean up afterwards.")
 @pass_ctx
-def build(ctx: ToriiCliContext, option):
+def build(ctx: ToriiCliContext, option: List[str], no_unity: bool,
+          no_clean: bool):
     """Build a Torii project."""
     # first, make sure we can find the Unity executable
     logging.info("Finding Unity executable...")
@@ -115,14 +119,16 @@ def build(ctx: ToriiCliContext, option):
         raise SystemExit(1)
 
     # run Unity to build game
-    builder = unity.UnityBuilder(exe_path)
-    success, exit_code = builder.build(ctx.project_path,
-                                       ctx.cfg.unity_build_execute_method)
-    if not success:
-        logging.critical(f"Unity failed with exit code: {exit_code}")
-        raise SystemExit(1)
+    if not no_unity:
+        builder = unity.UnityBuilder(exe_path)
+        success, exit_code = builder.build(ctx.project_path,
+                                           ctx.cfg.unity_build_execute_method)
+        if not success:
+            logging.critical(f"Unity failed with exit code: {exit_code}")
+            raise SystemExit(1)
 
-    logging.info("Build success")
+        logging.info("Build success")
+
     logging.info("Collecting completed builds...")
 
     # now, collect info on the completed builds (build number etc.), and
@@ -131,6 +137,9 @@ def build(ctx: ToriiCliContext, option):
         output_folder = path.join(ctx.project_path,
                                   ctx.cfg.build_output_folder)
         build_info = build_data.collect_finished_build(output_folder, bd)
+        if build_info is None:
+            logging.error(f"Unable to find build for target {bd.target}")
+            continue
 
         logging.info(f"Found version {build_info.build_number} for target "
                      f"{build_info.build_def.target} at {build_info.path}")
@@ -149,7 +158,9 @@ def build(ctx: ToriiCliContext, option):
         try:
             logging.info("Collecting post-steps...")
             for step in ctx.cfg.build_post_steps:
-                if step.filter.match(bd, option):
+                print(step)
+                if step.filter is None or step.filter.match(bd, option):
+                    print("SELECTED", step.step)
                     steps_to_run.append(
                         step.get_implementation(vars(build_info)))
 
@@ -164,14 +175,15 @@ def build(ctx: ToriiCliContext, option):
         finally:
             # now clean up all the steps we ran
             [step.cleanup() for step in steps_to_run]
-
-    logging.info("Finished running post steps! Build complete")
+            logging.info("Finished running post steps! Build complete")
 
     # clean up after the build, remove build defs and build output folder
-    try:
-        build_def.remove_generated_build_defs(ctx.project_path)
-        shutil.rmtree(path.join(ctx.project_path, ctx.cfg.build_output_folder),
-                      ignore_errors=True)
-    except OSError:
-        logging.exception("Unable to clean up after build")
-        raise SystemExit(1)
+    if not no_clean:
+        try:
+            build_def.remove_generated_build_defs(ctx.project_path)
+            shutil.rmtree(path.join(ctx.project_path,
+                                    ctx.cfg.build_output_folder),
+                          ignore_errors=True)
+        except OSError:
+            logging.exception("Unable to clean up after build")
+            raise SystemExit(1)

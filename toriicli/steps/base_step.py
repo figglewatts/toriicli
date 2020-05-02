@@ -25,8 +25,8 @@ class BaseStep(ABC):
     def __init__(self, keep: str, context: dict,
                  filter: schemas.StepFilter) -> None:
         self.workspace = tempfile.mkdtemp()
-        self.keep = keep
         self.context = context
+        self.keep = self.template(keep)
         self.filter = filter
 
     @abstractmethod
@@ -40,7 +40,8 @@ class BaseStep(ABC):
 
     def template(self, string: str) -> str:
         """Template a string using this step's context."""
-        return Template(string).render(**self.context)
+        expanded_vars = path.expandvars(string)
+        return Template(expanded_vars).render(**self.context)
 
     def use_workspace(self, step: BaseStep) -> None:
         """Copy things from the workspace of another step into this step.

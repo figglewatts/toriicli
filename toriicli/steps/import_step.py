@@ -16,6 +16,8 @@ class ImportStep(base_step.BaseStep):
         if backend is None:
             raise ValueError(
                 "Missing 'backend' in 'using' section of import step")
+        for k, v in kwargs.items():
+            kwargs[k] = self.template(v)
         self.provider = make_provider(backend, **kwargs)
 
     def perform(self) -> bool:
