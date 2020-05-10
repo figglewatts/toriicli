@@ -13,10 +13,10 @@ toriicli = {editable = true,path = "."}
 pyyaml = "*"
 marshmallow = "*"
 click = "*"
-appdirs = "*"
 python-dotenv = "*"
 boto3 = "*"
 jinja2 = "*"
+pefile = "*"
 
 [requires]
 python_version = "3.7"

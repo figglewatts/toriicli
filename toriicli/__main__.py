@@ -41,7 +41,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
               help="The project directory.")
 @click.pass_context
 def toriicli(ctx, project_path):
-    """CLI utility for the Unity Torii framework."""
+    """CLI utility for the Unity Torii library."""
     config.setup_logging()
     if ctx.invoked_subcommand not in SUBCOMMANDS_DONT_LOAD_CONFIG:
         cfg = config.from_yaml(config.CONFIG_NAME)
