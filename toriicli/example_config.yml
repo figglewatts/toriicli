@@ -41,16 +41,12 @@ build_defs:
   - target: StandaloneWindows
     executable_name: LSDR.exe
 
-build_post_steps:
-  - step: compress
-    using:
-      method: zip # shutil.make_archive(...)
-  - step: export
-    filter:
-      targets: [StandaloneWindows]
-    using:
-      backend: s3
-      region_name: fra1
-      endpoint_url: https://fra1.digitaloceanspaces.com/
-      bucket_name: $BUCKET_NAME
-      # creds: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+# build_post_steps (array): the list of steps to run for each build after it's
+# completed. Please see the README for information on steps.
+#
+build_post_steps: []
+
+# release_steps (array): the list of steps to run for each build def when a
+# version is released. Please see the README for information on releases.
+# 
+release_steps: []
