@@ -1,4 +1,9 @@
 # toriicli
+[![PyPI version fury.io](https://badge.fury.io/py/toriicli.svg)](https://pypi.python.org/pypi/toriicli/)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+![CI build](https://github.com/figglewatts/toriicli/workflows/CI/badge.svg)
+![CD build](https://github.com/figglewatts/toriicli/workflows/CD/badge.svg)
+
 CLI utility for Torii, mainly used for automation of building/releasing
 projects.
 
