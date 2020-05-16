@@ -15,10 +15,16 @@ from . import steps, config
 VERSION = "#{TAG_NAME}#"
 
 
-@dataclass
 class ToriiCliContext:
-    cfg: config.ToriiCliConfig
-    project_path: str
+    def __init__(self, cfg: config.ToriiCliConfig, project_path: str) -> None:
+        self.cfg = cfg
+
+        # if the project path is not absolute, we need to make it so, as
+        # Unity expects it to be absolute
+        if not path.isabs(project_path):
+            project_path = path.abspath(project_path)
+
+        self.project_path = project_path
 
 
 pass_ctx = click.make_pass_decorator(ToriiCliContext)
@@ -47,11 +53,6 @@ def toriicli(ctx, project_path):
         cfg = config.from_yaml(config.CONFIG_NAME)
         if cfg is None:
             raise SystemExit(1)
-
-        # if the project path is not absolute, we need to make it so, as
-        # Unity expects it to be absolute
-        if not path.isabs(project_path):
-            project_path = path.abspath(project_path)
 
         ctx.obj = ToriiCliContext(cfg, cfg.actual_project_dir or project_path)
 
