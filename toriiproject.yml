@@ -10,6 +10,8 @@
 #
 unity_preferred_version: "2017.4.30f1"
 
+nuget_package_install_path: UnityEditor/Dep/External
+
 # unity_build_execute_method (str, optional): the method to execute when running
 # Unity for a build. Of format 'NamespaceName.ClassName.MethodName'. As in
 # the docs https://docs.unity3d.com/Manual/CommandLineArguments.html, the

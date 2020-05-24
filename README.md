@@ -15,12 +15,18 @@ that I've found over the years.
 $ pip install toriicli
 ```
 
+## Prerequisites
+- Python 3.7+
+- Unity, installed via Unity Hub
+- NuGet and MSBuild (if you want to use the NuGet subcommand)
+
 ## Main functionality
 `toriicli` has commands for the following:
 - `build`: Build a Torii project
 - `find`: Find an installation of Unity
 - `new`: Create a new Torii project
 - `release`: Release a Torii project
+- `nuget`: Manage NuGet packages for project
 
 ## Common options
 - `-p, --project-path`: The path to the `toriiproject.yml` file of the project.
@@ -282,3 +288,81 @@ your game (zipped). If you ran `toriicli release 0.1.123.4567` with the steps
 above, it would download that version of the archive from cloud storage
 (see the `key` field of the import step), and then run butler using the zip
 to release it. Pretty nifty.
+
+## NuGet
+Toriicli has the `nuget` subcommand for working with project NuGet packages.
+To use this subcommand, you need the [NuGet CLI](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference)
+and a version of MSBuild. MSBuild comes with Visual Studio, but you can use 
+[JetBrains MSBuild](https://blog.jetbrains.com/dotnet/2018/04/13/introducing-jetbrains-redistributable-msbuild/) 
+or [Mono MSBuild](https://github.com/mono/msbuild) if you don't want to install Visual Studio.
+
+**Note:** in order to function correctly, NuGet must be configured to install packages
+into the `nuget-packages` directory in your Unity project folder. If you created
+your Torii project with `toriicli new` then you don't need to worry about this.
+If you are adapting an existing project to use `toriicli`, then make a file called
+`nuget.config` in your Unity project folder, and put this text in it:
+```xml
+<configuration>
+  <config>
+    <add key="repositoryPath" value="nuget-packages" />
+  </config>
+</configuration>
+```
+This will ensure all NuGet packages get installed to the `nuget-packages` folder.
+
+The reason for this is that Unity installs its own packages to the `packages` folder,
+which NuGet is configured by default to use. They cannot both share the same space,
+so we need to install NuGet packages to a separate place, as Unity is a bad roommate.
+
+You'll also need a blank `packages.config` file, like this:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<packages>
+</packages>
+```
+
+**Also note:** it's best to run these NuGet commands when Unity is not running,
+as sometimes it will access the installed packages causing permissions errors.
+
+
+### Installing a package
+To install a package, simply run:
+
+```bash
+$ toriicli nuget install <package>
+```
+
+You can optionally specify a version too:
+```bash
+$ toriicli nuget install <package> --version 0.1.2
+```
+
+This will use NuGet to install the package to the `nuget-packages` folder, it will
+add the package to your `packages.config` file, and it will copy the installed
+package into your Unity project. By default it will copy it into the
+`Assets/NuGetPackages` folder, but this can be configured by setting
+`nuget_package_install_path` in the config.
+
+Additionally, by default it will install the package for the latest version of
+the .NET Framework it can, with a maximum version of .NET Framework 4.6.2.
+This is because as far as I could see, this is the latest possible version
+Unity supports. If you'd like to customise this, you can configure this by
+setting `unity_dotnet_framework_version` in the config.
+
+### Uninstalling a package
+To uninstall a package, run:
+```bash
+$ toriicli nuget uninstall <package>
+```
+
+This will remove it from your Unity project, and your `packages.config`.
+
+### Restoring packages
+To sync your installed packages with your `packages.config` file, run:
+```bash
+$ toriicli nuget restore
+```
+
+This will reinstall all packages listed in `packages.config`. This is useful
+when cloning a repo from fresh, as packages won't normally be committed to
+the remote.

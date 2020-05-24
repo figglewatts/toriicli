@@ -18,6 +18,18 @@
 #
 # unity_build_execute_method: "Torii.Build.BuildScript.Build"
 
+# unity_dotnet_framework_version (str, optional): the .NET framework version to
+# use when determining which targets of NuGet packages to use. It defaults to
+# .NET 4.6.2, as that's a nice compatible version.
+#
+# unity_dotnet_framework_version: "462"
+
+# nuget_package_install_path (str, optional): the folder within the 'Assets'
+# folder of your project to install NuGet packages in.
+# Defaults to "NuGetPackages"
+#
+# nuget_package_install_path: NuGetPackages
+
 # actual_project_dir (str, optional): the actual project directory (where the
 # Unity project is) - by default toriicli will use the directory that this
 # config file is in as the Unity project folder but use this if you want to
@@ -48,5 +60,5 @@ build_post_steps: []
 
 # release_steps (array): the list of steps to run for each build def when a
 # version is released. Please see the README for information on releases.
-# 
+#
 release_steps: []

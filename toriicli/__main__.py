@@ -4,13 +4,14 @@ import logging.config
 import os
 from os import path
 import shutil
-from typing import List
+from typing import List, Optional
 
 import click
 import dotenv
 
 from .build import detect_unity, build_def, unity, build_data
 from . import steps, config
+from . import nuget as _nuget
 
 VERSION = "#{TAG_NAME}#"
 
@@ -25,6 +26,7 @@ class ToriiCliContext:
             project_path = path.abspath(project_path)
 
         self.project_path = project_path
+        self.project_name = path.basename(project_path)
 
 
 pass_ctx = click.make_pass_decorator(ToriiCliContext)
@@ -82,12 +84,14 @@ def new(project_path, force):
     the current working directory as the project path. Will not overwrite an
     existing project."""
     out_file_path = config.create_config(project_path, exist_ok=force)
+    nuget_out_file_path = _nuget.create_config(project_path, exist_ok=force)
 
-    if out_file_path is None:
+    if out_file_path is None or nuget_out_file_path is False:
         logging.error(
             f"Could not create project in {project_path}, "
-            f"{config.CONFIG_NAME} already existed. If you wanted this, try "
-            "running again with --force.")
+            f"Some required files already existed. If you wanted this and are "
+            "okay with these files being overwritten, try running again with "
+            "--force.")
         raise SystemExit(1)
 
     logging.info(f"Created new Torii project: {out_file_path}")
@@ -244,3 +248,47 @@ def release(ctx: ToriiCliContext, version: str, target: List[str],
             # now clean up all the steps we ran
             [step.cleanup() for step in steps_to_run]
             logging.info("Finished running steps! Release complete")
+
+
+@toriicli.group()
+@pass_ctx
+def nuget(ctx: ToriiCliContext):
+    """Manage NuGet packages for project."""
+
+
+@nuget.command()
+@pass_ctx
+def restore(ctx: ToriiCliContext):
+    """Run a NuGet restore for this project."""
+    success = _nuget.restore_packages(ctx.project_path, ctx.project_name,
+                                      ctx.cfg.nuget_package_install_path)
+    raise SystemExit(0 if success else 1)
+
+
+@nuget.command()
+@click.argument("package", nargs=1, type=str)
+@click.option(
+    "--version",
+    "-v",
+    nargs=1,
+    type=str,
+    default=None,
+    help=
+    "The version of the package to install. If not present, installs latest.")
+@pass_ctx
+def install(ctx: ToriiCliContext, package: str, version: Optional[str]):
+    """Install a NuGet package to this project."""
+    success = _nuget.install_package(ctx.project_path, package, version,
+                                     ctx.cfg.unity_dotnet_framework_version,
+                                     ctx.cfg.nuget_package_install_path)
+    raise SystemExit(0 if success else 1)
+
+
+@nuget.command()
+@click.argument("package", nargs=1, type=str)
+@pass_ctx
+def uninstall(ctx: ToriiCliContext, package: str):
+    """Uninstall a NuGet package from this project."""
+    success = _nuget.uninstall_package(ctx.project_path, package,
+                                       ctx.cfg.nuget_package_install_path)
+    raise SystemExit(0 if success else 1)

@@ -31,6 +31,12 @@ class ToriiCliConfigSchema(Schema):
         required=False,
         missing="Torii.Build.BuildScript.Build",
         allow_none=False)
+    unity_dotnet_framework_version = fields.Str(required=False,
+                                                missing="462",
+                                                allow_none=False)
+    nuget_package_install_path = fields.Str(required=False,
+                                            missing="NuGetPackages",
+                                            allow_none=False)
     actual_project_dir = fields.Str(required=False,
                                     missing=None,
                                     allow_none=False)
@@ -46,8 +52,8 @@ class ToriiCliConfigSchema(Schema):
                                    required=True,
                                    allow_none=False)
     release_steps = fields.List(fields.Nested(schemas.StepSchema),
-                                    required=True,
-                                    allow_none=False)
+                                required=True,
+                                allow_none=False)
 
     @post_load
     def make_torii_cli_config(self, data, **kwargs):
@@ -65,6 +71,8 @@ class ToriiCliConfig:
     unity_executable_path: str
     unity_preferred_version: str
     unity_build_execute_method: str
+    unity_dotnet_framework_version: str
+    nuget_package_install_path: str
     actual_project_dir: str
     build_defs: List[build_def.BuildDef]
     build_output_folder: str
