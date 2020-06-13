@@ -10,10 +10,12 @@ from typing import Tuple, List, Optional
 
 import xmltodict
 
-PACKAGE_REGEX = re.compile(r"^(.*)\.(\d+\.\d+\.\d+.*)$")
+PACKAGE_REGEX = re.compile(r"^([A-Za-z\.]*)\.(\d+(?:\.\d+){2,3}).*$")
 """Regex to extract a name and version from a NuGet package folder name.
-i.e. for Newtonsoft.Json.12.0.1, would extract 'NewtonSoft.Json' 
-and '12.0.1'"""
+i.e. for Newtonsoft.Json.12.0.1, would extract 'Newtonsoft.Json' 
+and '12.0.1'.
+Also handles weird versioning, i.e. MoonSharp.2.0.0.0 extracts 'MoonSharp' and
+'2.0.0' (leaving out the last zero). Thanks, MoonSharp."""
 
 
 @dataclass
@@ -227,6 +229,10 @@ def _find_appropriate_package_target(package_path: str,
     for framework_version_str in reversed(net_framework_targets):
         # remove the 'net'
         framework_version = framework_version_str[3:]
+
+        # remove '-client' if it's there (for .NET client profile)
+        if framework_version.endswith("-client"):
+            framework_version = framework_version[:-len("-client")]
 
         # normalize versions like '46' to '460'
         if len(framework_version) < 3:
