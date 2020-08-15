@@ -10,7 +10,7 @@ from typing import Tuple, List, Optional
 
 import xmltodict
 
-PACKAGE_REGEX = re.compile(r"^([A-Za-z\.]*)\.(\d+(?:\.\d+){2,3}).*$")
+PACKAGE_REGEX = re.compile(r"^([A-Za-z\.-]*)\.(\d+(?:\.\d+){2,3}).*$")
 """Regex to extract a name and version from a NuGet package folder name.
 i.e. for Newtonsoft.Json.12.0.1, would extract 'Newtonsoft.Json' 
 and '12.0.1'.
@@ -261,6 +261,11 @@ def _add_to_packages_config(project_path: str, package: NuGetPackage) -> None:
         "@version": package.version,
         "@targetFramework": package.framework
     }
+
+    # handle empty packages.config
+    if parsed["packages"] is None:
+        parsed["packages"] = {"package": []}
+
     parsed["packages"]["package"].append(new_package)
     with open(nuget_packages_config, 'w') as packages_config:
         packages_config.write(xmltodict.unparse(parsed, pretty=True))
@@ -277,7 +282,13 @@ def _remove_from_packages_config(project_path: str,
         "@version": package.version,
         "@targetFramework": package.framework
     }
-    parsed["packages"]["package"].remove(package_xml)
+
+    # handle packages.config with only one package
+    if isinstance(parsed["packages"]["package"], list):
+        parsed["packages"]["package"].remove(package_xml)
+    else:
+        parsed["packages"] = None
+
     with open(nuget_packages_config, 'w') as packages_config:
         packages_config.write(xmltodict.unparse(parsed, pretty=True))
 
@@ -302,8 +313,21 @@ def _gather_nuget_packages(project_path: str) -> List[NuGetPackage]:
     nuget_packages_config = path.join(project_path, "packages.config")
     with open(nuget_packages_config, 'rb') as packages_config:
         parsed = xmltodict.parse(packages_config)
+
+    # if packages.config is empty, return an empty list
+    if parsed["packages"] is None:
+        return []
+
     packages = []
-    for package in parsed["packages"]["package"]:
+
+    # handle packages.config with only one package
+    if isinstance(parsed["packages"]["package"], list):
+        for package in parsed["packages"]["package"]:
+            nuget_package = NuGetPackage(package["@id"], package["@version"],
+                                         package["@targetFramework"])
+            packages.append(nuget_package)
+    else:
+        package = parsed["packages"]["package"]
         nuget_package = NuGetPackage(package["@id"], package["@version"],
                                      package["@targetFramework"])
         packages.append(nuget_package)
