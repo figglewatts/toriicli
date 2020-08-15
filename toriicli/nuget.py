@@ -255,7 +255,7 @@ def _add_to_packages_config(project_path: str, package: NuGetPackage) -> None:
     """Update the NuGet packages.config file to include a new package."""
     nuget_packages_config = path.join(project_path, "packages.config")
     with open(nuget_packages_config, 'rb') as packages_config:
-        parsed = xmltodict.parse(packages_config)
+        parsed = xmltodict.parse(packages_config, force_list=("package"))
     new_package = {
         "@id": package.name,
         "@version": package.version,
@@ -276,18 +276,14 @@ def _remove_from_packages_config(project_path: str,
     """Update the NuGet packages.config file to remove a package."""
     nuget_packages_config = path.join(project_path, "packages.config")
     with open(nuget_packages_config, 'rb') as packages_config:
-        parsed = xmltodict.parse(packages_config)
+        parsed = xmltodict.parse(packages_config, force_list=("package"))
     package_xml = {
         "@id": package.name,
         "@version": package.version,
         "@targetFramework": package.framework
     }
 
-    # handle packages.config with only one package
-    if isinstance(parsed["packages"]["package"], list):
-        parsed["packages"]["package"].remove(package_xml)
-    else:
-        parsed["packages"] = None
+    parsed["packages"]["package"].remove(package_xml)
 
     with open(nuget_packages_config, 'w') as packages_config:
         packages_config.write(xmltodict.unparse(parsed, pretty=True))
