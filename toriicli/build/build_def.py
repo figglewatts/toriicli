@@ -8,9 +8,10 @@ from typing import List
 from marshmallow import Schema, fields, validate, post_load, pre_dump
 
 VALID_BUILD_TARGETS = [
-    "StandaloneOSXUniversal", "StandaloneWindows", "iOS", "Android",
-    "StandaloneWindows64", "WebGL", "WSAPlayer", "StandaloneLinux64",
-    "StandaloneLinuxUniversal", "PS4", "XboxOne", "tvOS", "Switch"
+    "StandaloneOSXUniversal", "StandaloneOSX", "StandaloneWindows", "iOS",
+    "Android", "StandaloneWindows64", "WebGL", "WSAPlayer",
+    "StandaloneLinux64", "StandaloneLinuxUniversal", "PS4", "XboxOne", "tvOS",
+    "Switch"
 ]
 """The valid targets for a Unity build, 
 from: https://docs.unity3d.com/ScriptReference/BuildTarget.html"""
