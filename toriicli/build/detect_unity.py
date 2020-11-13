@@ -39,7 +39,10 @@ def _find_unity_windows(
     editor_install_path = DEFAULT_EDITOR_INSTALL_PATH
     if has_secondary_install:
         with open(secondary_install_loc, 'r') as f_handle:
-            editor_install_path = json.load(f_handle)
+            secondary_install_path = json.load(f_handle)
+            if isinstance(secondary_install_path,
+                          str) and len(secondary_install_path) > 0:
+                editor_install_path = secondary_install_path
 
     return _scan_unity_versions(editor_install_path, preferred_version)
 
